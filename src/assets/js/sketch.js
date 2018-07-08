@@ -4,20 +4,20 @@
 let totalwidth = 1000,
     totalheight = 800;
 let mouseDown = 0;
-let canvasWidth = totalwidth;
-let canvasHeight = totalheight;
+let canvasWidth =  2300 ; 
+let canvasHeight =  1800 ; 
 // let canvasWidth  = document.body.clientWidth ; 
 // let canvasHeight = document.body.clientHeight ; 
 let environ;
 
 function setup() {
-    createCanvas(totalwidth, totalheight);
-    frameRate(100);
+    createCanvas(canvasWidth, canvasWidth);
+    frameRate(1000);
     fill(200, alpha = 100);
     environ = new Environment();
-    environ.addForce(new createVector(0 , 1)) ; 
+    environ.addForce(new createVector(0 , 10)) ; 
 
-    for (let i = 0; i < 10 ; i++)
+    for (let i = 0; i < 200 ; i++)
         environ.addBall(new Ball(random(51, 1000), random(51, 700), random(20, 60), environ));
 
 }
@@ -29,7 +29,7 @@ function draw() {
 }
 
 function mousePressed(){
-    environ.applyForce(new createVector(0 , -10)) ; 
+    environ.applyForce(new createVector(0 , -100)) ; 
 }
 
 
@@ -46,7 +46,10 @@ class Environment {
 
 
     update() {
+        push() ; 
+        fill(255) ; 
         rect(this.boundLeft, this.boundTop, this.boundRight, this.boundBottom);
+        pop() ; 
         this.forcesArray.forEach(force=>{
             this.applyForce(force) ; 
         })
@@ -56,6 +59,7 @@ class Environment {
 
 
     addBall(ball) {
+        ball.setVelocityLimit(20) ; 
         this.objectsArray.push(ball);
     }
 
@@ -82,6 +86,8 @@ class Ball {
     constructor(x, y, radius, environment) {
         this.environment = environment;
         this.radius = radius;
+        this.colorR =  random(255) ; this.colorG = random(255) ; this.colorB = random(255) ; 
+        this.colorAlpha = 100 ; 
         this.loc = new createVector(x, y);
         this.velocityLimit = Number.POSITIVE_INFINITY;
         this.vel = new createVector(0, 0);
@@ -98,7 +104,8 @@ class Ball {
         this.handleEnvironmentBound();
         this.vel.limit(this.velocityLimit) ; 
         this.loc.add(this.vel);
-        this.vel.add(this.acc);
+        this.vel.add(p5.Vector.div(p5.Vector.mult(p5.Vector.sub(new createVector(mouseX , mouseY) , this.loc) , -1) , this.radius).mult(0.01)) ; 
+        // this.vel.add(this.acc);
         this.acc.mult(0);
     }
 
@@ -126,11 +133,14 @@ class Ball {
     }
 
     show() {
+        push() ; 
+        fill(this.colorR , this.colorG , this.colorB , this.colorAlpha ) ; 
         ellipse(this.loc.x, this.loc.y, this.radius * 2, this.radius * 2);
+        pop() ;
     }
 
     applyForce(force) {
-        this.acc.add(force);
+        this.acc.add(p5.Vector.div(force , this.radius));
     }
     setVelocityLimit(lim) {
         this.velocityLimit = lim;
