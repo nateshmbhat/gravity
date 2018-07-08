@@ -12,16 +12,19 @@ let environ  ;
 
 function setup() {
     createCanvas( totalwidth, totalheight  );
-    frameRate(30);
+    frameRate(100);
     fill(200 ,alpha = 100) ; 
     environ =  new Environment() ; 
-    for(let i =0 ; i < 10 ; i++)
-        environ.addBall(new Ball(random(51 , 1000 ) , random( 51, 700), 30 , environ)) ;
+
+    for(let i =0 ; i < 1 ; i++)
+        environ.addBall(new Ball(random(51 , 1000 ) , random( 51, 700), random(20 , 60) , environ)) ;
+    
+    environ.applyForce(new createVector(0 , 0.5)) ; 
+    environ.addForce(new createVector(0.3 , 0 )) ; 
 }
 
 function draw() {
     background(255);
-    environ.applyForce(new createVector(0 , 0.5)) ; 
     environ.updateAndShowAllBalls() ;
 }
 
@@ -32,13 +35,13 @@ class Environment
     constructor(){
         this.ballsArray = [] ; 
         this.boundLeft = 50  ; 
-        this.boundRight = canvasWidth - 50 ; 
+        this.boundRight = canvasWidth - 100 ; 
         this.boundTop =  50 ;
-        this.boundBottom =  canvasHeight-50 ; 
+        this.boundBottom =  canvasHeight-100 ; 
     }
 
     update(){
-        rect(this.boundLeft, this.boundTop , this.boundRight , this.boundBottom) ; 
+        rect(this.boundLeft , this.boundTop , this.boundRight , this.boundBottom) ; 
     }
 
     addBall(ball){
@@ -54,6 +57,7 @@ class Environment
         this.ballsArray.forEach(ball=>ball.show()) ; 
     }
 
+    addForce(force){this.ballsArray.forEach(ball=>ball.addForce(force))}
     applyForce(force){this.ballsArray.forEach(ball=>ball.applyForce(force))}
 }
 
@@ -68,7 +72,7 @@ class Ball{
       this.velocityLimit = Number.POSITIVE_INFINITY ; 
       this.vel = new createVector(0 , 0) ; 
       this.acc = new createVector(0 , 0) ;
-      this.dampeningFactor = 0.80 ; 
+      this.dampeningFactor = 0.90 ; 
     }
 
     updateAndShow(){
@@ -77,6 +81,7 @@ class Ball{
     }
     
     update(){
+        console.log("Bob x , y = " , this.loc.x , this.loc.y , " Radius = " , this.radius) ; 
        this.handleEnvironmentBound() ; 
        this.loc.add(this.vel) ;
        this.vel.add(this.acc) ;
@@ -85,35 +90,31 @@ class Ball{
 
 
     handleEnvironmentBound(){
-        if((this.loc.x ) < this.environment.boundLeft){
-            this.vel.x*=-1; 
+        if((this.loc.x-this.radius ) < this.environment.boundLeft){
+            this.vel.x = abs(this.vel.x) ;
             this.vel.x*= this.dampeningFactor ; 
-            this.loc.x = this.environment.boundLeft+this.radius ; 
         } 
 
-        if(this.loc.x > this.environment.boundRight){
-            this.vel.x*=-1 ; 
+        if(this.loc.x -10 > this.environment.boundRight){
+            this.vel.x = -1 * abs(this.vel.x) ; 
             this.vel.x*= this.dampeningFactor ; 
-            this.loc.x = this.environment.boundRight-this.radius ; 
         } 
         
-        if(this.loc.y - this.radius< this.environment.boundTop){
-            this.vel.y*=-1 ; 
+        if(this.loc.y - this.radius/2< this.environment.boundTop){
+            this.vel.y = abs(this.vel.y) ;   
             this.vel.y*= this.dampeningFactor ; 
-            this.loc.y = this.environment.boundTop + this.radius ; 
         }
     
-        if(this.loc.y-this.radius+10 > this.environment.boundBottom) 
+        if(this.loc.y-this.radius/2  > this.environment.boundBottom) 
         {
-            this.vel.y*=-1 ; 
+            this.vel.y=-1 * abs(this.vel.y)  ; 
             this.vel.y*= this.dampeningFactor ; 
-            this.loc.y = this.environment.boundBottom; 
         }
     }
     
     show()
     {
-       ellipse(this.loc.x , this.loc.y  , this.radius , this.radius ) ;
+       ellipse(this.loc.x , this.loc.y  , this.radius *2  , this.radius * 2 ) ;
     }
 
     applyForce(force){this.acc = force ; }
