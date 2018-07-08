@@ -17,7 +17,7 @@ function setup() {
     environ = new Environment();
     environ.addForce(new createVector(0 , 1)) ; 
 
-    for (let i = 0; i < 1; i++)
+    for (let i = 0; i < 10 ; i++)
         environ.addBall(new Ball(random(51, 1000), random(51, 700), random(20, 60), environ));
 
 }
@@ -28,10 +28,12 @@ function draw() {
     environ.update();
 }
 
+function mousePressed(){
+    environ.applyForce(new createVector(0 , -10)) ; 
+}
 
 
 class Environment {
-
 
     constructor() {
         this.objectsArray = [];
@@ -93,12 +95,10 @@ class Ball {
     }
 
     update() {
-        console.log("Bob x , y = ", this.loc.x, this.loc.y, " Radius = ", this.radius);
         this.handleEnvironmentBound();
+        this.vel.limit(this.velocityLimit) ; 
         this.loc.add(this.vel);
         this.vel.add(this.acc);
-        this.vel.limit(this.velocityLimit);
-
         this.acc.mult(0);
     }
 
@@ -138,6 +138,7 @@ class Ball {
     setAcceleration(acc) {
         this.acc = acc;
     }
+
     setAcceleration(x, y) {
         this.acc.x = x;
         this.acc.y = y;
