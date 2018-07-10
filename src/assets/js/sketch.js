@@ -32,7 +32,6 @@ function mouseReleased(){
 
 // function mouseMoved(){console.log(mouseX , mouseY , canvasWidth , canvasHeight) ; }
 
-
 class Environment {
 
     constructor() {
@@ -218,7 +217,7 @@ class Ball {
        this.environment.objectsArray.forEach(object=>{
            if(object!=this){
                let dist = p5.Vector.sub(this.loc ,object.loc) ; 
-                if(dist.mag()*2 < (object.radius + this.radius))
+                if(dist.mag()*1.5 < (object.radius + this.radius))
                 {
                     this.handleGravitationalCollision(object) ; 
                     return ; 
