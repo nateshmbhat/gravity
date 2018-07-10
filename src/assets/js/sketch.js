@@ -18,6 +18,9 @@ function draw() {
 }
 
 function mousePressed(){
+    if(mouseX <0 || mouseY < 0 || mouseX> canvasWidth || mouseY > canvasHeight) return ; 
+
+    firstTouch = true ; 
     environ.setMouseLockedFlag(true) ; 
 }
 
@@ -26,6 +29,8 @@ function mouseReleased(){
     environ.createMouseBall() ; 
     console.log("mouse releeased" ) ; 
 }
+
+// function mouseMoved(){console.log(mouseX , mouseY , canvasWidth , canvasHeight) ; }
 
 
 class Environment {
@@ -58,6 +63,7 @@ class Environment {
             this.applyForce(force) ; 
         })
         if(this.gravityEnabledFlag) this.applyGravity() ; 
+        this.G = Number($("input[name=G]")[0].value) ; 
         this.updateAndShowAllBalls();
         
         if(this.mouseLockedFlag){
@@ -87,7 +93,7 @@ class Environment {
 
 
     addBall(ball) {
-        // ball.setVelocityLimit(20) ; 
+        ball.setVelocityLimit(50) ; 
         this.totalAreaOfObjects+=ball.radius*PI*ball.radius ;
         this.objectsArray.add(ball);
     }
@@ -212,7 +218,7 @@ class Ball {
        this.environment.objectsArray.forEach(object=>{
            if(object!=this){
                let dist = p5.Vector.sub(this.loc ,object.loc) ; 
-                if(dist.mag() < (object.radius + this.radius))
+                if(dist.mag()*2 < (object.radius + this.radius))
                 {
                     this.handleGravitationalCollision(object) ; 
                     return ; 
