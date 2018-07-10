@@ -23,7 +23,7 @@ function setup() {
 
 
 function draw() {
-    background(255);
+    background(230 , 100);
     environ.update();
 }
 
@@ -38,19 +38,20 @@ class Environment {
     constructor() {
         this.objectsArray = new Set() ;  
         this.forcesArray = [] ;
-        this.boundLeft = 50;
-        this.boundRight = canvasWidth - 100;
-        this.boundTop = 50;
-        this.boundBottom = canvasHeight - 100;
+        this.boundLeft = 0;
+        this.boundRight = canvasWidth ;
+        this.boundTop = 0;
+        this.boundBottom = canvasHeight ;
         this.gravitationalAcceleration = new createVector(0  , 0.1)  ; 
         this.gravityEnabledFlag = false ; 
-        this.G = 1 ; 
+        this.G = 100 ; 
     }
 
 
     update() {
         push() ; 
-        fill(255) ; 
+        fill(230) ; 
+        strokeWeight(0) ; 
         rect(this.boundLeft, this.boundTop, this.boundRight, this.boundBottom);
         pop() ; 
         this.forcesArray.forEach(force=>{
@@ -130,17 +131,17 @@ class Ball {
             this.vel.x *= this.dampeningFactor;
         }
 
-        if (this.loc.x - 10 > this.environment.boundRight) {
+        if (this.loc.x + this.radius  > this.environment.boundRight) {
             this.vel.x = -1 * abs(this.vel.x);
             this.vel.x *= this.dampeningFactor;
         }
 
-        if (this.loc.y - this.radius / 2 < this.environment.boundTop) {
+        if (this.loc.y - this.radius  < this.environment.boundTop) {
             this.vel.y = abs(this.vel.y);
             this.vel.y *= this.dampeningFactor;
         }
 
-        if (this.loc.y - this.radius / 2 > this.environment.boundBottom) {
+        if (this.loc.y+ this.radius > this.environment.boundBottom) {
             this.vel.y = -1 * abs(this.vel.y);
             this.vel.y *= this.dampeningFactor;
         }
@@ -175,6 +176,7 @@ class Ball {
         larger.colorB = larger.colorB - (larger.colorB - smaller.colorB)/2
 
         this.environment.objectsArray.delete(smaller) ; 
+        larger.vel.mult(10 *  1/smaller.radius) ; 
 
         return ; 
     }
