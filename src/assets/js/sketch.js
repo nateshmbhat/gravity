@@ -4,21 +4,20 @@
 let totalwidth = 1000,
     totalheight = 800;
 let mouseDown = 0;
-let canvasWidth =  2300 ; 
-let canvasHeight =  1800 ; 
+let canvasWidth =  1000 ; 
+let canvasHeight =  1000 ; 
 // let canvasWidth  = document.body.clientWidth ; 
 // let canvasHeight = document.body.clientHeight ; 
 let environ;
 
 function setup() {
     createCanvas(canvasWidth, canvasWidth);
-    frameRate(1000);
+    frameRate(100);
     fill(200, alpha = 100);
     environ = new Environment();
-    environ.addForce(new createVector(0 , 10)) ; 
 
-    for (let i = 0; i < 200 ; i++)
-        environ.addBall(new Ball(random(51, 1000), random(51, 700), random(20, 60), environ));
+    for (let i = 0; i < 2 ; i++)
+        environ.addBall(new Ball(random(51, 1000), random(200 , 1000), random(20, 60), environ));
 
 }
 
@@ -28,20 +27,24 @@ function draw() {
     environ.update();
 }
 
-function mousePressed(){
-    environ.applyForce(new createVector(0 , -100)) ; 
+function mouseDragged(){
+    // environ.applyForce(new createVector(100000 , -10)) ; 
+    environ.addBall(new Ball(mouseX , mouseY , random(10, 40) , environ)) ; 
 }
 
 
 class Environment {
 
     constructor() {
-        this.objectsArray = [];
+        this.objectsArray = new Set() ;  
         this.forcesArray = [] ;
         this.boundLeft = 50;
         this.boundRight = canvasWidth - 100;
         this.boundTop = 50;
         this.boundBottom = canvasHeight - 100;
+        this.gravitationalAcceleration = new createVector(0  , 0.1)  ; 
+        this.gravityEnabledFlag = false ; 
+        this.G = 1 ; 
     }
 
 
@@ -53,6 +56,7 @@ class Environment {
         this.forcesArray.forEach(force=>{
             this.applyForce(force) ; 
         })
+        if(this.gravityEnabledFlag) this.applyGravity() ; 
         this.updateAndShowAllBalls();
     }
 
@@ -60,7 +64,7 @@ class Environment {
 
     addBall(ball) {
         ball.setVelocityLimit(20) ; 
-        this.objectsArray.push(ball);
+        this.objectsArray.add(ball);
     }
 
     updateAndShowAllBalls() {
@@ -69,6 +73,15 @@ class Environment {
 
     showAllBalls() {
         this.objectsArray.forEach(ball => ball.show());
+    }
+
+    applyGravity(){
+        this.objectsArray.forEach(ball=>ball.applyGravity()) ; 
+    }
+
+
+    applyGravitationalForce(){
+        this.objectsArray.forEach(ball.applyGravitationalForce()) ; 
     }
 
     addForce(force) {
@@ -92,7 +105,8 @@ class Ball {
         this.velocityLimit = Number.POSITIVE_INFINITY;
         this.vel = new createVector(0, 0);
         this.acc = new createVector(0, 0);
-        this.dampeningFactor = 0.90;
+        this.dampeningFactor = 0.99;
+        this.mutualGravityFlagEnabled = true ; 
     }
 
     updateAndShow() {
@@ -104,8 +118,8 @@ class Ball {
         this.handleEnvironmentBound();
         this.vel.limit(this.velocityLimit) ; 
         this.loc.add(this.vel);
-        this.vel.add(p5.Vector.div(p5.Vector.mult(p5.Vector.sub(new createVector(mouseX , mouseY) , this.loc) , -1) , this.radius).mult(0.01)) ; 
-        // this.vel.add(this.acc);
+        if(this.mutualGravityFlagEnabled) this.applyGravitationalForce() ;
+        this.vel.add(this.acc);
         this.acc.mult(0);
     }
 
@@ -137,6 +151,51 @@ class Ball {
         fill(this.colorR , this.colorG , this.colorB , this.colorAlpha ) ; 
         ellipse(this.loc.x, this.loc.y, this.radius * 2, this.radius * 2);
         pop() ;
+    }
+
+    applyGravity(){
+        // Only gravity of Earth not mutual
+        this.acc.add(this.environment.gravitationalAcceleration) ; 
+    }
+
+
+    handleGravitationalCollision(object){
+        let larger , smaller   ;  
+        if(this.radius > object.radius){
+            this.radius += object.radius/2 ; 
+            larger = this ; smaller = object ; 
+        }
+        else{
+            object.radius+=this.radius/2 ; 
+            larger = object ; smaller = this ; 
+        }
+        
+        larger.colorR = larger.colorR - (larger.colorR - smaller.colorR)/2
+        larger.colorG = larger.colorG - (larger.colorG - smaller.colorG)/2
+        larger.colorB = larger.colorB - (larger.colorB - smaller.colorB)/2
+
+        this.environment.objectsArray.delete(smaller) ; 
+
+        return ; 
+    }
+
+    applyGravitationalForce(){
+       this.environment.objectsArray.forEach(object=>{
+           if(object!=this){
+               let dist = p5.Vector.sub(this.loc ,object.loc) ; 
+                if(dist.mag() < (object.radius + this.radius))
+                {
+                    this.handleGravitationalCollision(object) ; 
+                    return ; 
+                }
+
+               let distSquared  = dist.magSq() ; 
+               dist.normalize() ; 
+               dist.mult(-this.radius * object.radius * this.environment.G ) ; 
+               dist.div(distSquared) ; 
+               this.acc.add(dist) ; 
+           }
+       }) 
     }
 
     applyForce(force) {
