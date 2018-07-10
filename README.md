@@ -1,3 +1,4 @@
-# Interactive simulation of the effect of gravitational force on massive particles.
+# Gravity
+### Interative Simulation of the effect of mutual gravitational force on massive particles . 
 
-This repository contains the javascript code for simulating the visuals of multiple user interactive particles which are affected by gravitational forces that they apply to each other.
+Simulation of mutual gravitational force between particles of variable sizes . The particles when collide follow momentum conservation and their colors also combine to form the new combined color.
