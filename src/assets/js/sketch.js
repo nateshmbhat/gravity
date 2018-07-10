@@ -1,70 +1,94 @@
 /// <reference path="p5/p5.global-mode.d.ts" />
 
 
-let totalwidth = 1000,
-    totalheight = 800;
 let mouseDown = 0;
-let canvasWidth =  1000 ; 
-let canvasHeight =  1000 ; 
-// let canvasWidth  = document.body.clientWidth ; 
-// let canvasHeight = document.body.clientHeight ; 
+let canvasWidth =  3000//screen.availWidth ; 
+let canvasHeight = 1540 //screen.availHeight ; 
 let environ;
 
 function setup() {
-    createCanvas(canvasWidth, canvasWidth);
+    createCanvas(canvasWidth, canvasHeight);
     frameRate(100);
-    fill(200, alpha = 100);
     environ = new Environment();
-
-    for (let i = 0; i < 2 ; i++)
-        environ.addBall(new Ball(random(51, 1000), random(200 , 1000), random(20, 60), environ));
-
 }
 
 
 function draw() {
-    background(230 , 100);
     environ.update();
 }
 
-function mouseDragged(){
-    // environ.applyForce(new createVector(100000 , -10)) ; 
-    environ.addBall(new Ball(mouseX , mouseY , random(10, 40) , environ)) ; 
+function mousePressed(){
+    environ.setMouseLockedFlag(true) ; 
+}
+
+function mouseReleased(){
+    environ.setMouseLockedFlag(false) ; 
+    environ.createMouseBall() ; 
+    console.log("mouse releeased" ) ; 
 }
 
 
 class Environment {
 
     constructor() {
+        this.mouseLockedFlag = false; 
         this.objectsArray = new Set() ;  
         this.forcesArray = [] ;
+        this.totalAreaOfObjects = 0 ;
         this.boundLeft = 0;
         this.boundRight = canvasWidth ;
+        this.mouseBall = new MouseBall() ; 
         this.boundTop = 0;
         this.boundBottom = canvasHeight ;
         this.gravitationalAcceleration = new createVector(0  , 0.1)  ; 
         this.gravityEnabledFlag = false ; 
-        this.G = 100 ; 
+        this.G = 0.5 ; 
     }
 
+    setMouseLockedFlag(status){this.mouseLockedFlag = status; }
 
     update() {
-        push() ; 
-        fill(230) ; 
-        strokeWeight(0) ; 
-        rect(this.boundLeft, this.boundTop, this.boundRight, this.boundBottom);
+        background(255) ; 
+        push();
+        stroke(0) ;
+        strokeWeight(10) ; 
+        rect(0,0,canvasWidth , canvasHeight) ; 
         pop() ; 
         this.forcesArray.forEach(force=>{
             this.applyForce(force) ; 
         })
         if(this.gravityEnabledFlag) this.applyGravity() ; 
         this.updateAndShowAllBalls();
+        
+        if(this.mouseLockedFlag){
+            console.log("Drawing") ; 
+            this.mouseBall.updateAndShow() ; 
+        }
+        this.handleCanvasResize() ; 
+    }
+
+    createMouseBall(){
+        let ball = new Ball(mouseX , mouseY , this.mouseBall.radius , environ) ; 
+        ball.setColor(this.mouseBall.colorR , this.mouseBall.colorG , this.mouseBall.colorB) ; 
+        this.addBall(ball) ; 
+        this.mouseBall = new MouseBall() ; 
+    }
+
+    handleCanvasResize(){
+        if(this.totalAreaOfObjects> canvasHeight*canvasWidth*0.1)        
+        {
+            canvasHeight *= 1.7 ; 
+            canvasWidth *= 1.7 ; 
+            this.boundRight = canvasWidth ; 
+            this.boundBottom = canvasHeight; 
+            resizeCanvas(canvasWidth , canvasHeight) ; 
+        }
     }
 
 
-
     addBall(ball) {
-        ball.setVelocityLimit(20) ; 
+        // ball.setVelocityLimit(20) ; 
+        this.totalAreaOfObjects+=ball.radius*PI*ball.radius ;
         this.objectsArray.add(ball);
     }
 
@@ -124,7 +148,6 @@ class Ball {
         this.acc.mult(0);
     }
 
-
     handleEnvironmentBound() {
         if ((this.loc.x - this.radius) < this.environment.boundLeft) {
             this.vel.x = abs(this.vel.x);
@@ -170,13 +193,17 @@ class Ball {
             object.radius+=this.radius/2 ; 
             larger = object ; smaller = this ; 
         }
+
+        this.environment.totalAreaOfObjects-= (this.radius**2*PI +object.radius**2*PI) ; 
         
         larger.colorR = larger.colorR - (larger.colorR - smaller.colorR)/2
         larger.colorG = larger.colorG - (larger.colorG - smaller.colorG)/2
         larger.colorB = larger.colorB - (larger.colorB - smaller.colorB)/2
 
         this.environment.objectsArray.delete(smaller) ; 
-        larger.vel.mult(10 *  1/smaller.radius) ; 
+        this.environment.totalAreaOfObjects+=larger.radius**2*PI ; 
+
+        this.vel.add(p5.Vector.div(smaller.vel.mult(smaller.radius)  , this.radius)) ;
 
         return ; 
     }
@@ -209,9 +236,39 @@ class Ball {
     setAcceleration(acc) {
         this.acc = acc;
     }
+    setColor(r , g , b){
+        this.colorR = r ; 
+        this.colorG = g ; 
+        this.colorB = b ; 
+    }
 
     setAcceleration(x, y) {
-        this.acc.x = x;
-        this.acc.y = y;
+        this.acc.x = x; this.acc.y = y;
+    }
+}
+
+
+class MouseBall{
+    constructor(){
+        this.mouseLockedFlag = false; 
+        this.radius = 0 ; 
+        this.radiusStep  = 0.25 ;
+        this.colorR = random(0,255) ; 
+        this.colorG = random(0,255) ; 
+        this.colorB = random(0,255) ; 
+    }
+
+    setMouseLockedFlag(status){this.mouseLockedFlag = status ; }
+
+    update(){
+        this.radius+=this.radiusStep ; 
+    }
+    updateAndShow(){this.update() ; this.show() ; }
+
+    show(){
+        push() ; 
+        fill(this.colorR , this.colorG , this.colorB , 100) ; 
+        ellipse(mouseX ,mouseY , this.radius*2 , this.radius*2) ; 
+        pop() ; 
     }
 }
