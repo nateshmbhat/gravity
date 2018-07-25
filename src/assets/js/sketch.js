@@ -5,6 +5,11 @@ let mouseDown = 0;
 let canvasWidth = window.innerWidth ; 
 let canvasHeight = window.innerHeight ; 
 
+let mobileDevice ; 
+if(canvasWidth<700) mobileDevice = true ; 
+
+let totalBalls  = 175 ; 
+
 console.log(canvasWidth , canvasHeight) ; 
 let environ;
 
@@ -15,8 +20,12 @@ function setup() {
     environ = new Environment();
     environ.addForce(new createVector(0 , 10)) ; 
 
-    for (let i = 0; i < 200 ; i++)
-        environ.addBall(new Ball(random(51, 1000), random(51, 700), random(10, 50), environ));
+    if(mobileDevice)totalBalls = 40 ; 
+
+    for (let i = 0; i < totalBalls ; i++)
+    {
+        environ.addBall(new Ball(random(30, canvasWidth), random(30, canvasHeight), random(5 , 50 ), environ));
+    }
 }
 
 
@@ -34,9 +43,10 @@ class Environment {
         this.forcesArray = [] ;
         this.boundLeft = 20;
         this.boundRight = canvasWidth - 30;
-        this.boundTop = 20;
-        this.speedLimit = 20 ; 
-        this.boundBottom = canvasHeight - 30 ;
+        this.boundTop = 0 ;
+        this.boundBottom = canvasHeight - 50 ;
+        this.speedLimit = 15 ; 
+        if(mobileDevice)this.speedLimit = 10 ; 
         console.log(this.boundLeft , this.boundRight , this.boundTop , this.boundBottom) ; 
     }
 
@@ -45,6 +55,15 @@ class Environment {
         push() ; 
         fill(255) ; 
         rect(this.boundLeft, this.boundTop, this.boundRight, this.boundBottom);
+        if(mouseIsPressed){
+            fill(0,0) ;
+            stroke(40 ,200)
+            ellipse(mouseX , mouseY , 10 , 10 ) ; 
+            stroke(100 , 30  , 200 , 100) ; 
+            ellipse(mouseX , mouseY , 30 , 30 ) ; 
+            stroke(74 , 100 , 50 , 100 )
+            ellipse(mouseX , mouseY , 50 , 50 ) ; 
+        }
         pop() ; 
         this.forcesArray.forEach(force=>{
             this.applyForce(force) ; 
@@ -114,7 +133,7 @@ class Ball {
         let mouseToBall = p5.Vector.sub( this.loc , new createVector(mouseX , mouseY) )  ; 
         let direction = mouseToBall.normalize() ;  //Ball to mouse
         let finalAcceleraiton = p5.Vector.div( direction.mult(constant)  , mouseToBall.mag()) ; 
-        return finalAcceleraiton  ;  
+        return finalAcceleraiton.mult(-1)  ;  
     }
 
 
@@ -144,17 +163,7 @@ class Ball {
         push() ; 
         fill(this.colorR , this.colorG , this.colorB , this.colorAlpha ) ; 
         ellipse(this.loc.x, this.loc.y, this.radius * 2, this.radius * 2);
-        if(mouseIsPressed){
-            push();
-            fill(0,0) ;
-            stroke(40 ,20)
-            ellipse(mouseX , mouseY , 10 , 10 ) ; 
-            stroke(100 , 30  , 10) ; 
-            ellipse(mouseX , mouseY , 30 , 30 ) ; 
-            stroke(74 , 100 , 50 , 1 )
-            ellipse(mouseX , mouseY , 50 , 50 ) ; 
-            pop() ; 
-        }
+        
         pop() ;
     }
 
