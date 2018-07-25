@@ -37,6 +37,7 @@ class Environment {
     constructor() {
         this.mouseLockedFlag = false; 
         this.objectsArray = new Set() ;  
+        this.velocityLimit = 30 ; 
         this.forcesArray = [] ;
         this.totalAreaOfObjects = 0 ;
         this.boundLeft = 1;
@@ -55,7 +56,6 @@ class Environment {
         background(255) ; 
         push();
         stroke(0) ;
-        strokeWeight(2) ; 
         rect(0,0,this.boundRight, this.boundBottom) ; 
         pop() ; 
         this.forcesArray.forEach(force=>{
@@ -92,7 +92,7 @@ class Environment {
 
 
     addBall(ball) {
-        ball.setVelocityLimit(50) ; 
+        ball.setVelocityLimit(this.velocityLimit) ; 
         this.totalAreaOfObjects+=ball.radius*PI*ball.radius ;
         this.objectsArray.add(ball);
     }
