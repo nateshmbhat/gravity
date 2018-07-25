@@ -1,25 +1,22 @@
 /// <reference path="p5/p5.global-mode.d.ts" />
 
-
-let totalwidth = 1000,
     totalheight = 800;
 let mouseDown = 0;
-let canvasWidth =  2300 ; 
-let canvasHeight =  1800 ; 
-// let canvasWidth  = document.body.clientWidth ; 
-// let canvasHeight = document.body.clientHeight ; 
+let canvasWidth = window.innerWidth ; 
+let canvasHeight = window.innerHeight ; 
+
+console.log(canvasWidth , canvasHeight) ; 
 let environ;
 
 function setup() {
-    createCanvas(canvasWidth, canvasWidth);
+    createCanvas(canvasWidth, canvasHeight);
     frameRate(1000);
     fill(200, alpha = 100);
     environ = new Environment();
     environ.addForce(new createVector(0 , 10)) ; 
 
     for (let i = 0; i < 200 ; i++)
-        environ.addBall(new Ball(random(51, 1000), random(51, 700), random(20, 60), environ));
-
+        environ.addBall(new Ball(random(51, 1000), random(51, 700), random(10, 50), environ));
 }
 
 
@@ -28,9 +25,6 @@ function draw() {
     environ.update();
 }
 
-function mousePressed(){
-    environ.applyForce(new createVector(0 , -100)) ; 
-}
 
 
 class Environment {
@@ -38,10 +32,12 @@ class Environment {
     constructor() {
         this.objectsArray = [];
         this.forcesArray = [] ;
-        this.boundLeft = 50;
-        this.boundRight = canvasWidth - 100;
-        this.boundTop = 50;
-        this.boundBottom = canvasHeight - 100;
+        this.boundLeft = 20;
+        this.boundRight = canvasWidth - 30;
+        this.boundTop = 20;
+        this.speedLimit = 20 ; 
+        this.boundBottom = canvasHeight - 30 ;
+        console.log(this.boundLeft , this.boundRight , this.boundTop , this.boundBottom) ; 
     }
 
 
@@ -59,7 +55,7 @@ class Environment {
 
 
     addBall(ball) {
-        ball.setVelocityLimit(20) ; 
+        ball.setVelocityLimit(this.speedLimit) ; 
         this.objectsArray.push(ball);
     }
 
@@ -104,9 +100,21 @@ class Ball {
         this.handleEnvironmentBound();
         this.vel.limit(this.velocityLimit) ; 
         this.loc.add(this.vel);
-        this.vel.add(p5.Vector.div(p5.Vector.mult(p5.Vector.sub(new createVector(mouseX , mouseY) , this.loc) , -1) , this.radius).mult(0.01)) ; 
-        // this.vel.add(this.acc);
+        
+        this.acc = this.getAccelerationFromMouse() ; 
+        if(mouseIsPressed) this.acc.mult(-1) ; 
+
+        this.vel.add(this.acc) ; 
+
         this.acc.mult(0);
+    }
+
+    getAccelerationFromMouse(){
+        let constant = 100 ; 
+        let mouseToBall = p5.Vector.sub( this.loc , new createVector(mouseX , mouseY) )  ; 
+        let direction = mouseToBall.normalize() ;  //Ball to mouse
+        let finalAcceleraiton = p5.Vector.div( direction.mult(constant)  , mouseToBall.mag()) ; 
+        return finalAcceleraiton  ;  
     }
 
 
@@ -116,17 +124,17 @@ class Ball {
             this.vel.x *= this.dampeningFactor;
         }
 
-        if (this.loc.x - 10 > this.environment.boundRight) {
+        if (this.loc.x + this.radius > this.environment.boundRight) {
             this.vel.x = -1 * abs(this.vel.x);
             this.vel.x *= this.dampeningFactor;
         }
 
-        if (this.loc.y - this.radius / 2 < this.environment.boundTop) {
+        if (this.loc.y - this.radius  < this.environment.boundTop) {
             this.vel.y = abs(this.vel.y);
             this.vel.y *= this.dampeningFactor;
         }
 
-        if (this.loc.y - this.radius / 2 > this.environment.boundBottom) {
+        if (this.loc.y + this.radius > this.environment.boundBottom) {
             this.vel.y = -1 * abs(this.vel.y);
             this.vel.y *= this.dampeningFactor;
         }
@@ -136,6 +144,17 @@ class Ball {
         push() ; 
         fill(this.colorR , this.colorG , this.colorB , this.colorAlpha ) ; 
         ellipse(this.loc.x, this.loc.y, this.radius * 2, this.radius * 2);
+        if(mouseIsPressed){
+            push();
+            fill(0,0) ;
+            stroke(40 ,20)
+            ellipse(mouseX , mouseY , 10 , 10 ) ; 
+            stroke(100 , 30  , 10) ; 
+            ellipse(mouseX , mouseY , 30 , 30 ) ; 
+            stroke(74 , 100 , 50 , 1 )
+            ellipse(mouseX , mouseY , 50 , 50 ) ; 
+            pop() ; 
+        }
         pop() ;
     }
 
